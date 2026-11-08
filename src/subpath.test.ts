@@ -10,6 +10,7 @@ const pkg = JSON.parse(readFileSync(resolve(repoRoot, 'package.json'), 'utf8')) 
 
 const ENTRIES = [
     { subpath: '.', source: './index.js' },
+    { subpath: './host', source: './host/index.js' },
     { subpath: './testing', source: './testing/index.js' },
 ]
 
