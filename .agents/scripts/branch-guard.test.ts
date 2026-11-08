@@ -204,7 +204,7 @@ describe('pre-commit', () => {
         expect(commit().status).toBe(0)
     })
 
-    it('lets the release workflow commit on main', () => {
+    it('lets a GitHub Actions workflow commit on main', () => {
         expect(commit({ GITHUB_ACTIONS: 'true' }).status).toBe(0)
         expect(commitsOnHead()).toBe('2')
     })
@@ -296,7 +296,7 @@ describe('pre-push', () => {
         expect(output(result)).toContain('node or npm not found, so the tests were skipped')
     })
 
-    it('lets the release workflow push to main', () => {
+    it('lets a GitHub Actions workflow push to main', () => {
         expect(push(['--dry-run', 'origin', 'HEAD:main'], { GITHUB_ACTIONS: 'true' }).status).toBe(
             0,
         )
