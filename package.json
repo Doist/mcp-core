@@ -1,0 +1,87 @@
+{
+    "name": "@doist/mcp-core",
+    "version": "0.0.0-development",
+    "description": "Shared core for the Doist MCP servers",
+    "type": "module",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        },
+        "./testing": {
+            "types": "./dist/testing/index.d.ts",
+            "import": "./dist/testing/index.js"
+        }
+    },
+    "scripts": {
+        "build": "tsc -p tsconfig.build.json",
+        "dev": "tsc -p tsconfig.build.json --watch",
+        "type-check": "tsc --noEmit && tsc --noEmit -p .agents/scripts",
+        "check": "oxlint src .agents/scripts && oxfmt --check",
+        "fix": "oxlint src .agents/scripts --fix && oxfmt",
+        "test": "vitest run --passWithNoTests",
+        "test:watch": "vitest",
+        "verify": "node .agents/scripts/verify.ts",
+        "review:worktree": "node .agents/scripts/review-worktree.ts",
+        "prepublishOnly": "npm run build && npm test",
+        "prepare": "lefthook install --reset-hooks-path"
+    },
+    "keywords": [
+        "mcp",
+        "model-context-protocol",
+        "doist"
+    ],
+    "author": "Doist",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Doist/mcp-core.git"
+    },
+    "homepage": "https://github.com/Doist/mcp-core#readme",
+    "bugs": {
+        "url": "https://github.com/Doist/mcp-core/issues"
+    },
+    "publishConfig": {
+        "access": "public",
+        "provenance": true
+    },
+    "engines": {
+        "node": ">=24",
+        "npm": ">=11"
+    },
+    "files": [
+        "dist",
+        "CHANGELOG.md"
+    ],
+    "devDependencies": {
+        "@modelcontextprotocol/client": "2.4.0",
+        "@modelcontextprotocol/server": "2.4.0",
+        "@semantic-release/changelog": "7.0.0",
+        "@semantic-release/git": "11.0.1",
+        "@types/node": "25.9.9",
+        "conventional-changelog-conventionalcommits": "9.3.1",
+        "lefthook": "2.2.2",
+        "oxfmt": "0.75.0",
+        "oxlint": "1.90.0",
+        "semantic-release": "25.0.9",
+        "typescript": "7.0.2",
+        "vitest": "5.0.5",
+        "zod": "4.6.7"
+    },
+    "peerDependencies": {
+        "@modelcontextprotocol/client": "^2.2.0",
+        "@modelcontextprotocol/server": "^2.2.0",
+        "vitest": ">=4.1",
+        "zod": "^4.3.0"
+    },
+    "peerDependenciesMeta": {
+        "@modelcontextprotocol/client": {
+            "optional": true
+        },
+        "vitest": {
+            "optional": true
+        }
+    }
+}
