@@ -59,7 +59,7 @@ npm run verify      # every check CI runs (lint, format, types, build, tests)
 
 Code every MCP server needs in the same form, and nothing that names a product. A server's API client, its error formatting, request tagging, instructions and output schemas stay in the server, and reach the core through options and hooks (`createContext`, `formatError`, `wrapExecute`, `onError`). When one server needs different behaviour, add a hook, not a flag naming that server.
 
-The MCP SDK and Zod are peer dependencies, never dependencies. A host such as todoist-ai-integrations unwraps the servers it is handed with `instanceof McpServer`, which fails against a second copy of the SDK; the schema cache reads Zod's Standard Schema internals, which a second copy of Zod would not share. `@modelcontextprotocol/client` and `vitest` are optional peers, imported only from `./testing`.
+The MCP SDK and Zod are peer dependencies, never dependencies. A host such as todoist-ai-integrations unwraps the servers it is handed with `instanceof McpServer`, which fails against a second copy of the SDK; the schema cache reads Zod's Standard Schema internals, which a second copy of Zod would not share. `@modelcontextprotocol/client` and `vitest` are imported only from `./testing` and are not peers at all: a peer of a production dependency is installed in production, so declaring them would put vitest in every server's `npm ci --omit=dev`. `src/package-manifest.test.ts` allows only peers the root entry imports.
 
 ## Code style
 

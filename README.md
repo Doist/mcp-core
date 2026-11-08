@@ -12,12 +12,12 @@ npm install @doist/mcp-core
 
 The MCP SDK and Zod are peer dependencies, so the server and the core share one copy of each. That matters: a host that serves several MCP servers unwraps them with `instanceof McpServer`, which fails against a second copy of the SDK.
 
-| Peer                           | Range    | Needed by              |
-| ------------------------------ | -------- | ---------------------- |
-| `@modelcontextprotocol/server` | `^2.2.0` | everything             |
-| `zod`                          | `^4.3.0` | everything             |
-| `@modelcontextprotocol/client` | `^2.2.0` | `./testing` (optional) |
-| `vitest`                       | `>=4.1`  | `./testing` (optional) |
+| Peer                           | Range    |
+| ------------------------------ | -------- |
+| `@modelcontextprotocol/server` | `^2.2.0` |
+| `zod`                          | `^4.3.0` |
+
+`./testing` also imports `vitest` (4.1 or later) and `@modelcontextprotocol/client` (2.2 or later), from the server's own devDependencies. They are deliberately not peers: npm installs a peer of a production dependency in production, so declaring them would put vitest in every server's `npm ci --omit=dev`.
 
 ## What's in it
 
