@@ -1,30 +1,17 @@
 /**
  * @type {import('semantic-release').GlobalConfig}
+ *
+ * A release publishes to npm, pushes a `v<version>` tag and writes the notes to a GitHub release.
+ * It commits nothing back to `main`: the branch requires signed commits, which the release bot's
+ * commit would not be. `package.json` keeps `0.0.0-development`, and the version comes from the
+ * tags.
  */
-
-const prereleaseBranches = [{ name: 'next', prerelease: true }]
-
-const isPrerelease = prereleaseBranches.some((b) => b.name === process.env.GITHUB_REF_NAME)
-
 export default {
-    branches: ['main', ...prereleaseBranches],
+    branches: ['main', { name: 'next', prerelease: true }],
     plugins: [
         ['@semantic-release/commit-analyzer', { preset: 'conventionalcommits' }],
         ['@semantic-release/release-notes-generator', { preset: 'conventionalcommits' }],
-        ...(isPrerelease ? [] : ['@semantic-release/changelog']),
         '@semantic-release/npm',
-        ...(isPrerelease
-            ? []
-            : [
-                  [
-                      '@semantic-release/git',
-                      {
-                          assets: ['CHANGELOG.md', 'package.json', 'package-lock.json'],
-                          message:
-                              'chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}',
-                      },
-                  ],
-              ]),
         '@semantic-release/github',
     ],
 }

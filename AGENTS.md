@@ -52,7 +52,7 @@ npm run verify      # every check CI runs (lint, format, types, build, tests)
 
 - Commits and pushes to `main` are refused by the git hooks. Work on a branch.
 - When a turn changes code that `npm run verify` has not passed, the end-of-turn hook (Claude Code, Codex, Cursor) sends you back once. Run verify, or stop on purpose and say what is unverified.
-- Agent tooling lives in `.agents/scripts/`. It never ships: `package.json#files` lists only `dist` and the changelog, and a test checks the packed tarball.
+- Agent tooling lives in `.agents/scripts/`. It never ships: `package.json#files` lists only `dist`, and a test checks the packed tarball.
 - How it all fits together: [`docs/agents.md`](docs/agents.md).
 
 ## What belongs here
@@ -84,4 +84,4 @@ Each module lives at `src/<area>.ts` with a colocated `<area>.test.ts`. The `./t
 
 ## Releases
 
-semantic-release publishes with conventional commits and npm provenance; `next` is the pre-release branch. Until npm publishing is set up for `@doist/mcp-core`, `release.yml` runs only when started by hand. Do not enable broader triggers than `main` and `next`.
+Every push to `main` runs semantic-release (`release.yml`), with conventional commits and npm provenance; `next` is the pre-release branch. A release publishes to npm, tags `v<version>` and writes a GitHub release. It commits nothing back to `main`, which requires signed commits, so `package.json` keeps `0.0.0-development` and there is no changelog file. Do not enable broader triggers than `main` and `next`.
