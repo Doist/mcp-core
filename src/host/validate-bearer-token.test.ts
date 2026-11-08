@@ -14,6 +14,12 @@ let received: Received[]
 beforeAll(async () => {
     server = createServer((req, res) => {
         received.push({ method: req.method, url: req.url, headers: req.headers })
+        // A page anyone can load, as a login page would be.
+        if (req.url === '/public') {
+            res.writeHead(200, { 'content-type': 'text/html' })
+            res.end('<html>sign in</html>')
+            return
+        }
         const send = () => {
             res.writeHead(reply.status, reply.headers)
             res.end(reply.body ?? '')
@@ -50,15 +56,18 @@ describe('validateBearerToken', () => {
         expect(received[0]?.headers['doist-tool']).toBe('auth:validate-token')
     })
 
-    it('sends the token even when the caller headers carry their own Authorization', async () => {
-        await validateBearerToken({
-            url: baseUrl,
-            token: 'tok-123',
-            headers: { Authorization: 'Bearer someone-else' },
-        })
+    it.each(['Authorization', 'authorization'])(
+        'sends the token even when the caller headers carry their own %s',
+        async (name) => {
+            await validateBearerToken({
+                url: baseUrl,
+                token: 'tok-123',
+                headers: { [name]: 'Bearer someone-else' },
+            })
 
-        expect(received[0]?.headers.authorization).toBe('Bearer tok-123')
-    })
+            expect(received[0]?.headers.authorization).toBe('Bearer tok-123')
+        },
+    )
 
     it.each([
         [200, 'valid'],
@@ -130,6 +139,43 @@ describe('validateBearerToken', () => {
         },
     )
 
+    it('does not follow a redirect, so a public page answering 200 is no verdict', async () => {
+        reply = { status: 302, headers: { location: '/public' } }
+        const error = await validateBearerToken({
+            url: `${baseUrl}/api/v1/user`,
+            token: 'tok',
+        }).catch((thrown: unknown) => thrown)
+
+        expect(error).toBeInstanceOf(TokenValidationError)
+        expect(error).toMatchObject({ httpStatusCode: 302 })
+        expect(received.map((request) => request.url)).toEqual(['/api/v1/user'])
+    })
+
+    it('leaves the connection open for the next validation', async () => {
+        // A server of its own, so no connection from an earlier test is already pooled.
+        let connections = 0
+        const own = createServer((_req, res) => {
+            res.writeHead(200, { 'content-type': 'application/json' })
+            res.end(JSON.stringify({ items: 'x'.repeat(64 * 1024) }))
+        })
+        own.on('connection', () => connections++)
+        await new Promise<void>((resolve) => own.listen(0, '127.0.0.1', resolve))
+        const url = `http://127.0.0.1:${(own.address() as AddressInfo).port}`
+
+        try {
+            for (let i = 0; i < 3; i++) {
+                await validateBearerToken({ url, token: 'tok' })
+                // The pool takes a connection back once the response's end has been processed,
+                // after this tick. Validations from separate requests are never closer than that.
+                await new Promise((resolve) => setImmediate(resolve))
+            }
+            expect(connections).toBe(1)
+        } finally {
+            own.closeAllConnections()
+            await new Promise<void>((resolve) => own.close(() => resolve()))
+        }
+    })
+
     it('rejects with a TimeoutError when the API does not answer in time', async () => {
         reply = { status: 200, delayMs: 1_000 }
         await expect(
@@ -143,8 +189,12 @@ describe('validateBearerToken', () => {
         const { port } = closed.address() as AddressInfo
         await new Promise<void>((resolve) => closed.close(() => resolve()))
 
-        await expect(
-            validateBearerToken({ url: `http://127.0.0.1:${port}`, token: 'tok' }),
-        ).rejects.toMatchObject({ message: 'fetch failed', cause: { code: 'ECONNREFUSED' } })
+        const error = await validateBearerToken({
+            url: `http://127.0.0.1:${port}`,
+            token: 'tok',
+        }).catch((thrown: unknown) => thrown)
+
+        expect(error).not.toBeInstanceOf(TokenValidationError)
+        expect(error).toMatchObject({ cause: { code: 'ECONNREFUSED' } })
     })
 })

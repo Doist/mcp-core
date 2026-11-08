@@ -21,17 +21,17 @@ The MCP SDK and Zod are peer dependencies, so the server and the core share one 
 
 ## What's in it
 
-| Module              | Key exports                                                                                                    |
-| ------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `tool`              | `McpTool`, `AnyMcpTool`, `ToolResult`, `ExecuteResult`, `RequiredToolAnnotations`, `ToolSchemaSource` (types)  |
-| `register-tool`     | `createToolRegistrar`, `ToolRegistrarOptions`, `RegisterTool`, `ToolFailure`                                   |
-| `tool-output`       | `getToolOutput`, `getErrorOutput`, `ToolOutputOptions`                                                         |
-| `sanitize`          | `removeNullFields`, `RemoveNullFieldsOptions`                                                                  |
-| `tool-schemas`      | `getToolSchemas`, `ToolSchemas`                                                                                |
-| `annotations`       | `getMcpAnnotations`, `formatToolTitle`                                                                         |
-| `app-meta`          | `normalizeToolMeta`                                                                                            |
-| `host` (subpath)    | `validateBearerToken`, `TokenValidationError`, `TokenValidationResult`, `ValidateToken`, `McpServerOptions`    |
-| `testing` (subpath) | `describeOutputSchemaNullability`, `describeAdvertisedToolSchemas`, `findNullablePaths`, `listAdvertisedTools` |
+| Module              | Key exports                                                                                                                               |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `tool`              | `McpTool`, `AnyMcpTool`, `ToolResult`, `ExecuteResult`, `RequiredToolAnnotations`, `ToolSchemaSource` (types)                             |
+| `register-tool`     | `createToolRegistrar`, `ToolRegistrarOptions`, `RegisterTool`, `ToolFailure`                                                              |
+| `tool-output`       | `getToolOutput`, `getErrorOutput`, `ToolOutputOptions`                                                                                    |
+| `sanitize`          | `removeNullFields`, `RemoveNullFieldsOptions`                                                                                             |
+| `tool-schemas`      | `getToolSchemas`, `ToolSchemas`                                                                                                           |
+| `annotations`       | `getMcpAnnotations`, `formatToolTitle`                                                                                                    |
+| `app-meta`          | `normalizeToolMeta`                                                                                                                       |
+| `host` (subpath)    | `validateBearerToken`, `ValidateBearerTokenOptions`, `TokenValidationError`, `TokenValidationResult`, `ValidateToken`, `McpServerOptions` |
+| `testing` (subpath) | `describeOutputSchemaNullability`, `describeAdvertisedToolSchemas`, `findNullablePaths`, `listAdvertisedTools`                            |
 
 ## Usage
 
@@ -127,16 +127,16 @@ export const validateNotesToken: ValidateToken = (token, baseUrl = 'https://note
     validateBearerToken({ url: `${baseUrl}/api/v1/me`, token })
 ```
 
-| The API answers                 | `validateBearerToken`                                                                        |
-| ------------------------------- | -------------------------------------------------------------------------------------------- |
-| 2xx                             | `valid`                                                                                      |
-| 401                             | `invalid`: the host sends a 401 challenge, and the client refreshes its token                |
-| 403                             | `forbidden`, or whatever `classifyForbidden(response)` returns                               |
-| any other status                | throws `TokenValidationError`, whose `httpStatusCode` lets the host treat a 5xx as transient |
-| nothing within `timeoutMs` (5s) | rejects with the `TimeoutError`                                                              |
-| a network failure               | rejects with the error unchanged                                                             |
+| The API answers                       | `validateBearerToken`                                                                        |
+| ------------------------------------- | -------------------------------------------------------------------------------------------- |
+| 2xx                                   | `valid`                                                                                      |
+| 401                                   | `invalid`: the host sends a 401 challenge, and the client refreshes its token                |
+| 403                                   | `forbidden`, or whatever `classifyForbidden(response)` returns                               |
+| any other status, a redirect included | throws `TokenValidationError`, whose `httpStatusCode` lets the host treat a 5xx as transient |
+| nothing within `timeoutMs` (5s)       | rejects with the `TimeoutError`                                                              |
+| a network failure                     | rejects with the error unchanged                                                             |
 
-The body is never read, so a change to the response's shape can't misclassify a token. Pass `classifyForbidden` when a 403 can also mean a refusal that consent can't lift, and `headers` to tag the request.
+The body is drained unread, so a change to the response's shape can't misclassify a token and the connection goes back to the pool. Redirects aren't followed: a sign-in page that answers 200 would otherwise pass for an accepted token. Pass `classifyForbidden` when a 403 can also mean a refusal that consent can't lift, and `headers` to tag the request.
 
 ### Contract tests
 
