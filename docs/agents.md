@@ -44,7 +44,7 @@ This repository is set up so coding agents prove their work before they call it 
 - If node is not on `PATH` (some GUI git clients), both hooks still apply the branch rule, skip the checks, and say so. CI runs the same checks.
 - The default branch is read from `origin/HEAD`, falling back to `main`. Pushes to `next`, the pre-release branch, are allowed: syncing it with `main` is a direct push.
 
-The release workflow pushes a tag from GitHub Actions, and `npm ci` runs `prepare` there, which installs the hooks. The release step sets `LEFTHOOK=0`, so semantic-release's push runs no hooks: every check already ran on the pull request. It commits nothing to `main`. The guard also skips itself when `GITHUB_ACTIONS=true`, in case another workflow commits with the hooks on. That is the one exemption. Branch protection on GitHub is the real enforcement; the hooks only catch mistakes early.
+The release workflow pushes a tag from GitHub Actions, and `npm ci` runs `prepare` there, which installs the hooks. The release step sets `LEFTHOOK=0`, so semantic-release's push runs no hooks: every check already ran on the pull request, and the tests ran again in the job before it. It commits nothing to `main`. The guard also skips itself when `GITHUB_ACTIONS=true`, in case another workflow commits with the hooks on. That is the one exemption. Branch protection on GitHub is the real enforcement; the hooks only catch mistakes early.
 
 ## `npm run verify`
 
@@ -146,7 +146,7 @@ Your part: answer the decision questions, and read the evidence report, especial
 
 ## Releases
 
-semantic-release publishes from `main` on every merge, and a pre-release from `next`. A release publishes to npm, tags `v<version>` and writes a GitHub release; it commits nothing back to `main`, which requires signed commits. The squash-merged PR title decides whether anything ships: `feat:`, `fix:`, `perf:` and any breaking change (`!`) release; `chore:`, `ci:`, `docs:`, `test:` and `refactor:` do not. Changes to the agent tooling use `chore:` or `ci:`, so they never publish a new version. No path filter is needed.
+semantic-release publishes from `main` on every merge, and a pre-release from `next`. The release job runs only after `test.yml`'s tests pass on the pushed commit. A release publishes to npm, tags `v<version>` and writes a GitHub release; it commits nothing back to `main`, which requires signed commits. The squash-merged PR title decides whether anything ships: `feat:`, `fix:`, `perf:` and any breaking change (`!`) release; `chore:`, `ci:`, `docs:`, `test:` and `refactor:` do not. Changes to the agent tooling use `chore:` or `ci:`, so they never publish a new version. No path filter is needed.
 
 ## What fails open
 
