@@ -42,10 +42,10 @@ oxlint + oxfmt · semantic-release.
 
 ## Public API surface (`package.json#exports`)
 
-| Subpath                   | Provides                                                                                              | Peers it needs                                           |
-| ------------------------- | ----------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| `.` (root)                | The tool types, `createToolRegistrar`, `getToolOutput`, `removeNullFields`, schema cache, annotations | `@modelcontextprotocol/server`, `zod`                    |
-| `@doist/mcp-core/testing` | `describeOutputSchemaNullability`, `describeAdvertisedToolSchemas` and the helpers they use           | the above, plus `@modelcontextprotocol/client`, `vitest` |
+| Subpath                   | Provides                                                                                              | Peers it needs                                                                  |
+| ------------------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `.` (root)                | The tool types, `createToolRegistrar`, `getToolOutput`, `removeNullFields`, schema cache, annotations | `@modelcontextprotocol/server`, `zod`                                           |
+| `@doist/mcp-core/testing` | `describeOutputSchemaNullability`, `describeAdvertisedToolSchemas` and the helpers they use           | the above; also imports `@modelcontextprotocol/client` and `vitest`, undeclared |
 
 ## `src/` tree
 

@@ -68,17 +68,7 @@
         "zod": "4.6.7"
     },
     "peerDependencies": {
-        "@modelcontextprotocol/client": "^2.2.0",
         "@modelcontextprotocol/server": "^2.2.0",
-        "vitest": ">=4.1",
         "zod": "^4.3.0"
-    },
-    "peerDependenciesMeta": {
-        "@modelcontextprotocol/client": {
-            "optional": true
-        },
-        "vitest": {
-            "optional": true
-        }
     }
 }
