@@ -66,11 +66,11 @@ The MCP SDK and Zod are peer dependencies, never dependencies. A host such as to
 - **Prefer `type` over `interface`.** Use `type` aliases for every object-shape declaration we own. `interface` is reserved for the rare case where declaration merging is genuinely needed (none today).
 - **No emojis in source files.**
 - **No comments that restate the code.** Comments earn their place by explaining _why_: non-obvious constraints, invariants, edge cases, or workarounds.
-- **No dead exports.** If something isn't reached from `src/index.ts`, `src/testing/index.ts` or a test, delete it.
+- **No dead exports.** If something isn't reached from `src/index.ts`, a subpath barrel (`src/host/index.ts`, `src/testing/index.ts`) or a test, delete it.
 
 ## Module layout
 
-Each module lives at `src/<area>.ts` with a colocated `<area>.test.ts`. The `./testing` subpath lives in `src/testing/`, with the same colocated-test rule. The public API is every `export` re-exported through `src/index.ts`, plus `src/testing/index.ts` for the `./testing` subpath declared in `package.json#exports`. `src/subpath.test.ts` checks each built entry exports exactly what its source barrel does.
+Each module lives at `src/<area>.ts` with a colocated `<area>.test.ts`. Each subpath lives in its own folder (`./host` in `src/host/`, `./testing` in `src/testing/`), with the same colocated-test rule. The public API is every `export` re-exported through `src/index.ts`, plus each subpath's `index.ts` for the subpaths declared in `package.json#exports`. `src/subpath.test.ts` checks each built entry exports exactly what its source barrel does.
 
 ## README maintenance
 

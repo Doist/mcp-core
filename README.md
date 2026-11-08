@@ -1,6 +1,6 @@
 # @doist/mcp-core
 
-Shared core for Doist's MCP servers ([todoist-mcp](https://github.com/Doist/todoist-mcp), [comms-mcp](https://github.com/Doist/comms-mcp) and the Automations MCP server): the tool contract, tool registration, how a tool result is shaped for the wire, and the contract test suites every server runs over its own tools.
+Shared core for Doist's MCP servers ([todoist-mcp](https://github.com/Doist/todoist-mcp), [comms-mcp](https://github.com/Doist/comms-mcp) and the Automations MCP server): the tool contract, tool registration, how a tool result is shaped for the wire, the contract a server offers the host that serves it, and the contract test suites every server runs over its own tools.
 
 TypeScript, ESM-only, Node ≥ 24, npm ≥ 11.
 
@@ -21,16 +21,17 @@ The MCP SDK and Zod are peer dependencies, so the server and the core share one 
 
 ## What's in it
 
-| Module              | Key exports                                                                                                    |
-| ------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `tool`              | `McpTool`, `AnyMcpTool`, `ToolResult`, `ExecuteResult`, `RequiredToolAnnotations`, `ToolSchemaSource` (types)  |
-| `register-tool`     | `createToolRegistrar`, `ToolRegistrarOptions`, `RegisterTool`, `ToolFailure`                                   |
-| `tool-output`       | `getToolOutput`, `getErrorOutput`, `ToolOutputOptions`                                                         |
-| `sanitize`          | `removeNullFields`, `RemoveNullFieldsOptions`                                                                  |
-| `tool-schemas`      | `getToolSchemas`, `ToolSchemas`                                                                                |
-| `annotations`       | `getMcpAnnotations`, `formatToolTitle`                                                                         |
-| `app-meta`          | `normalizeToolMeta`                                                                                            |
-| `testing` (subpath) | `describeOutputSchemaNullability`, `describeAdvertisedToolSchemas`, `findNullablePaths`, `listAdvertisedTools` |
+| Module              | Key exports                                                                                                                               |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `tool`              | `McpTool`, `AnyMcpTool`, `ToolResult`, `ExecuteResult`, `RequiredToolAnnotations`, `ToolSchemaSource` (types)                             |
+| `register-tool`     | `createToolRegistrar`, `ToolRegistrarOptions`, `RegisterTool`, `ToolFailure`                                                              |
+| `tool-output`       | `getToolOutput`, `getErrorOutput`, `ToolOutputOptions`                                                                                    |
+| `sanitize`          | `removeNullFields`, `RemoveNullFieldsOptions`                                                                                             |
+| `tool-schemas`      | `getToolSchemas`, `ToolSchemas`                                                                                                           |
+| `annotations`       | `getMcpAnnotations`, `formatToolTitle`                                                                                                    |
+| `app-meta`          | `normalizeToolMeta`                                                                                                                       |
+| `host` (subpath)    | `validateBearerToken`, `ValidateBearerTokenOptions`, `TokenValidationError`, `TokenValidationResult`, `ValidateToken`, `McpServerOptions` |
+| `testing` (subpath) | `describeOutputSchemaNullability`, `describeAdvertisedToolSchemas`, `findNullablePaths`, `listAdvertisedTools`                            |
 
 ## Usage
 
@@ -109,6 +110,33 @@ For each tool this:
 1. Nulls and empty objects are stripped from `structuredContent` (`removeNullFields`). Empty arrays stay. Pass `verbatimKeys` for keys whose nulls mean something, such as a stored JSON Schema.
 2. `content` is, in order: the tool's own `contentItems`, then `structuredContent` as a JSON text block, then `textContent`. A client that reads only a text `content[0]` (the OpenAI Responses API drops `structuredContent`) still gets the payload.
 3. `structuredContentAsText: false` leaves the JSON block out, for deployments whose clients all read `structuredContent`.
+
+### Serving a server from a host
+
+`@doist/mcp-core/host` is the contract between a server package and a host that serves several of them, such as todoist-ai-integrations. Every server exports the same two shapes:
+
+- `getMcpServer(options)`, taking `McpServerOptions` (`{ token, baseUrl? }`), or `McpServerOptions & { ... }` when it needs more;
+- a `ValidateToken`: `(token, baseUrl?) => Promise<'valid' | 'invalid' | 'forbidden'>`.
+
+A validator resolves only with a verdict on the token and rejects for anything else, so the host can retry a failure without caching it as a verdict. `validateBearerToken` builds one from a status-only `GET`:
+
+```ts
+import { validateBearerToken, type ValidateToken } from '@doist/mcp-core/host'
+
+export const validateNotesToken: ValidateToken = (token, baseUrl = 'https://notes.example.com') =>
+    validateBearerToken({ url: `${baseUrl}/api/v1/me`, token })
+```
+
+| The API answers                       | `validateBearerToken`                                                                        |
+| ------------------------------------- | -------------------------------------------------------------------------------------------- |
+| 2xx                                   | `valid`                                                                                      |
+| 401                                   | `invalid`: the host sends a 401 challenge, and the client refreshes its token                |
+| 403                                   | `forbidden`, or whatever `classifyForbidden(response)` returns                               |
+| any other status, a redirect included | throws `TokenValidationError`, whose `httpStatusCode` lets the host treat a 5xx as transient |
+| nothing within `timeoutMs` (5s)       | rejects with the `TimeoutError`                                                              |
+| a network failure                     | rejects with the error unchanged                                                             |
+
+The body is drained unread, so a change to the response's shape can't misclassify a token and the connection goes back to the pool. Redirects aren't followed: a sign-in page that answers 200 would otherwise pass for an accepted token. Pass `classifyForbidden` when a 403 can also mean a refusal that consent can't lift, and `headers` to tag the request.
 
 ### Contract tests
 

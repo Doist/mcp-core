@@ -4,7 +4,7 @@ Rules lint and types can't express. Most are written in `AGENTS.md` and `CODEBAS
 
 ## Report
 
-- An export not reached from its barrel (`src/index.ts` or `src/testing/index.ts`), a new subpath without its `package.json#exports` entry (`types` and `import`), or a dead export: one nothing re-exports or tests.
+- An export not reached from its barrel (`src/index.ts`, `src/host/index.ts` or `src/testing/index.ts`), a new subpath without its `package.json#exports` entry (`types` and `import`), or a dead export: one nothing re-exports or tests.
 - A public export added, renamed, removed or meaningfully changed without the `README.md` update in the same change ("README maintenance" in `AGENTS.md`).
 - Any runtime dependency (there are none), or the MCP SDK or Zod moved from `peerDependencies` to `dependencies`. A second copy of the SDK breaks the hosts' `instanceof McpServer` check, and a second copy of Zod breaks the schema cache.
 - `@modelcontextprotocol/client` or `vitest` imported from the root entry, or declared in `peerDependencies`. Only `./testing` imports them, from the server's devDependencies.

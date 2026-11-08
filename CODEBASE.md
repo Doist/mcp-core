@@ -9,7 +9,8 @@
 `@doist/mcp-core` is a **shared TypeScript library** for the Doist MCP servers
 (`@doist/todoist-mcp`, `@doist/comms-mcp`, `@doist/automations-mcp`). It is **not a server**:
 it ships the tool contract, a tool registrar with hooks for what differs per product, the
-wire shaping of tool results, and contract test suites each server runs over its own tools.
+wire shaping of tool results, the contract a server offers its host (token validation and the
+factory options), and contract test suites each server runs over its own tools.
 
 ESM-only · Node ≥ 24 · no runtime dependencies · the MCP SDK and Zod as peers · vitest ·
 oxlint + oxfmt · semantic-release.
@@ -42,10 +43,11 @@ oxlint + oxfmt · semantic-release.
 
 ## Public API surface (`package.json#exports`)
 
-| Subpath                   | Provides                                                                                              | Peers it needs                                                                  |
-| ------------------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| `.` (root)                | The tool types, `createToolRegistrar`, `getToolOutput`, `removeNullFields`, schema cache, annotations | `@modelcontextprotocol/server`, `zod`                                           |
-| `@doist/mcp-core/testing` | `describeOutputSchemaNullability`, `describeAdvertisedToolSchemas` and the helpers they use           | the above; also imports `@modelcontextprotocol/client` and `vitest`, undeclared |
+| Subpath                   | Provides                                                                                                                                 | Peers it needs                                                                  |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `.` (root)                | The tool types, `createToolRegistrar`, `getToolOutput`, `removeNullFields`, schema cache, annotations                                    | `@modelcontextprotocol/server`, `zod`                                           |
+| `@doist/mcp-core/host`    | `validateBearerToken`, `TokenValidationError` and the host contract types (`TokenValidationResult`, `ValidateToken`, `McpServerOptions`) | none                                                                            |
+| `@doist/mcp-core/testing` | `describeOutputSchemaNullability`, `describeAdvertisedToolSchemas` and the helpers they use                                              | the above; also imports `@modelcontextprotocol/client` and `vitest`, undeclared |
 
 ## `src/` tree
 
@@ -61,6 +63,10 @@ src/
 ├─ annotations.ts         # formatToolTitle, getMcpAnnotations (product title, openWorldHint default)
 ├─ app-meta.ts            # normalizeToolMeta: both forms of the MCP Apps UI resource
 ├─ subpath.test.ts        # Each package.json export resolves to a build matching its barrel
+├─ host/                  # ./host subpath: what a server offers the host that serves it
+│  ├─ index.ts            # ./host barrel
+│  ├─ server-contract.ts  # TokenValidationResult, ValidateToken, McpServerOptions (types only)
+│  └─ validate-bearer-token.ts # validateBearerToken, TokenValidationError
 └─ testing/               # ./testing subpath: suites the servers run over their own tools
    ├─ index.ts            # ./testing barrel
    ├─ nullable-output.ts  # findNullablePaths, describeOutputSchemaNullability

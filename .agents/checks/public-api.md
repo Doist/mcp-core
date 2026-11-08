@@ -1,6 +1,6 @@
 # Check: public API
 
-What the Doist MCP servers see: everything exported from `src/index.ts` and `src/testing/index.ts`, its names, signatures, options and behaviour, plus peer dependency ranges and the Node engine. The shape of a tool result on the wire (content order, which blocks are sent, null stripping, `isError`) is part of it: it reaches every client of every server.
+What the Doist MCP servers see: everything exported from `src/index.ts`, `src/host/index.ts` and `src/testing/index.ts`, its names, signatures, options and behaviour, plus peer dependency ranges and the Node engine. The shape of a tool result on the wire (content order, which blocks are sent, null stripping, `isError`) is part of it: it reaches every client of every server. So is what `./host` promises a host such as todoist-ai-integrations: which statuses a token validator turns into which verdict, and what it throws instead.
 
 ## Report
 
