@@ -4,8 +4,9 @@
 # on stdin).
 # Plain sh on purpose: it must work in GUI clients that have git but no node or npm.
 #
-# The release workflow commits and pushes to main with semantic-release, and `npm ci` runs
-# `prepare`, which installs these hooks there too, so GitHub Actions is exempt.
+# `npm ci` runs `prepare`, which installs these hooks in GitHub Actions too, where the release
+# workflow pushes its tag. A workflow is never a person or an agent at a keyboard, so GitHub
+# Actions is exempt.
 # This is a speed bump, not the enforcement: the "Protect default branch" ruleset is.
 
 set -u

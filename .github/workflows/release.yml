@@ -1,11 +1,10 @@
 name: Release
 
-# Started by hand only until npm publishing is set up for @doist/mcp-core. Then restore:
-#     push:
-#         branches:
-#             - main
-#             - next
 on:
+    push:
+        branches:
+            - main
+            - next
     workflow_dispatch:
 
 permissions:
@@ -19,8 +18,17 @@ concurrency:
     cancel-in-progress: false
 
 jobs:
+    test:
+        name: Test
+        permissions:
+            contents: read
+        uses: ./.github/workflows/test.yml
+
     release:
         name: Release
+        # semantic-release pushes the tag before `npm publish` runs `prepublishOnly`, so tests that
+        # failed only there would leave a tag and no package. Run them first.
+        needs: test
         runs-on: ubuntu-latest
         timeout-minutes: 60
 
@@ -73,5 +81,5 @@ jobs:
                   GIT_COMMITTER_NAME: ${{ steps.generate_token.outputs.app-slug }}[bot]
                   GIT_COMMITTER_EMAIL: ${{ steps.bot_user.outputs.id }}+${{ steps.generate_token.outputs.app-slug }}[bot]@users.noreply.github.com
                   # `npm ci` installs the git hooks (the `prepare` script). The pull request
-                  # already ran every check, so the release commit and push skip them.
+                  # already ran every check, so the release's tag push skips them.
                   LEFTHOOK: '0'

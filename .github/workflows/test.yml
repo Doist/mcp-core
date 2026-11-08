@@ -2,6 +2,8 @@ name: Tests
 
 on:
     pull_request:
+    # The release workflow calls this, and publishes only once it passes on the pushed commit.
+    workflow_call:
 
 permissions:
     contents: read

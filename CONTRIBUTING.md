@@ -39,4 +39,4 @@ PR titles are validated against the same convention.
 
 ## Releases
 
-semantic-release publishes to npm with provenance and updates the changelog. Until npm publishing is set up for `@doist/mcp-core`, the release workflow runs only when started by hand.
+Every push to `main` runs semantic-release, which publishes to npm with provenance, tags the release and writes its notes to a GitHub release. The PR title decides whether anything ships: `feat:`, `fix:`, `perf:` and breaking changes release; `chore:`, `ci:`, `docs:`, `test:` and `refactor:` do not.

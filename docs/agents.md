@@ -44,7 +44,7 @@ This repository is set up so coding agents prove their work before they call it 
 - If node is not on `PATH` (some GUI git clients), both hooks still apply the branch rule, skip the checks, and say so. CI runs the same checks.
 - The default branch is read from `origin/HEAD`, falling back to `main`. Pushes to `next`, the pre-release branch, are allowed: syncing it with `main` is a direct push.
 
-The release workflow commits and pushes to `main` from GitHub Actions, and `npm ci` runs `prepare` there, which installs the hooks. The release step sets `LEFTHOOK=0`, so semantic-release's commit and push run no hooks, as before: every check already ran on the pull request. The guard also skips itself when `GITHUB_ACTIONS=true`, in case another workflow commits with the hooks on. That is the one exemption. Branch protection on GitHub is the real enforcement; the hooks only catch mistakes early.
+The release workflow pushes a tag from GitHub Actions, and `npm ci` runs `prepare` there, which installs the hooks. The release step sets `LEFTHOOK=0`, so semantic-release's push runs no hooks: every check already ran on the pull request, and the tests ran again in the job before it. It commits nothing to `main`. The guard also skips itself when `GITHUB_ACTIONS=true`, in case another workflow commits with the hooks on. That is the one exemption. Branch protection on GitHub is the real enforcement; the hooks only catch mistakes early.
 
 ## `npm run verify`
 
@@ -139,14 +139,14 @@ Your part: answer the decision questions, and read the evidence report, especial
 
 ## Where the tooling lives
 
-- `.agents/scripts/` holds scripts and their tests, next to the skills and review checks. It never ships: `package.json#files` lists only `dist` and the changelog, and `.agents/scripts/package-contents.test.ts` checks the packed tarball.
+- `.agents/scripts/` holds scripts and their tests, next to the skills and review checks. It never ships: `package.json#files` lists only `dist`, and `.agents/scripts/package-contents.test.ts` checks the packed tarball.
 - Skills live in `.agents/skills/`, where Codex reads them. Claude Code reads them through the symlinks in `.claude/skills/`; a test keeps the two in step.
 - The tooling runs straight from TypeScript with Node's type stripping, so it only uses erasable syntax (`.agents/scripts/tsconfig.json` enforces this). `npm run type-check` covers it, and `npm run check` lints it.
 - Tests run in `npm test` and CI. They copy the tools into throwaway git repositories and never touch your checkout. A test helper clears the variables git exports to hooks, since `npm test` itself runs inside `pre-push`.
 
 ## Releases
 
-semantic-release publishes from `main`, and a pre-release from `next`. Until npm publishing is set up for `@doist/mcp-core`, `release.yml` runs only when started by hand (`workflow_dispatch`); after that it runs on every push to `main` and `next`. The squash-merged PR title decides whether anything ships: `feat:`, `fix:`, `perf:` and any breaking change (`!`) release; `chore:`, `ci:`, `docs:`, `test:` and `refactor:` do not. Changes to the agent tooling use `chore:` or `ci:`, so they never publish a new version. No path filter is needed.
+semantic-release publishes from `main` on every merge, and a pre-release from `next`. The release job runs only after `test.yml`'s tests pass on the pushed commit. A release publishes to npm, tags `v<version>` and writes a GitHub release; it commits nothing back to `main`, which requires signed commits. The squash-merged PR title decides whether anything ships: `feat:`, `fix:`, `perf:` and any breaking change (`!`) release; `chore:`, `ci:`, `docs:`, `test:` and `refactor:` do not. Changes to the agent tooling use `chore:` or `ci:`, so they never publish a new version. No path filter is needed.
 
 ## What fails open
 

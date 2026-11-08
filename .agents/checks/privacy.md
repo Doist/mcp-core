@@ -1,6 +1,6 @@
 # Check: privacy and secrets
 
-This repository is public, and the npm package ships `dist/` (including the `./testing` helpers) and the changelog to every MCP server.
+This repository is public, and the npm package ships `dist/` (including the `./testing` helpers) to every MCP server.
 
 ## Report
 
