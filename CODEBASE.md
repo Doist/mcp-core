@@ -43,11 +43,11 @@ oxlint + oxfmt · semantic-release.
 
 ## Public API surface (`package.json#exports`)
 
-| Subpath                   | Provides                                                                                                                                 | Peers it needs                                                                  |
-| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| `.` (root)                | The tool types, `createToolRegistrar`, `getToolOutput`, `removeNullFields`, schema cache, annotations                                    | `@modelcontextprotocol/server`, `zod`                                           |
-| `@doist/mcp-core/host`    | `validateBearerToken`, `TokenValidationError` and the host contract types (`TokenValidationResult`, `ValidateToken`, `McpServerOptions`) | none                                                                            |
-| `@doist/mcp-core/testing` | `describeOutputSchemaNullability`, `describeAdvertisedToolSchemas` and the helpers they use                                              | the above; also imports `@modelcontextprotocol/client` and `vitest`, undeclared |
+| Subpath                   | Provides                                                                                                                                                                                                                                        | Peers it needs                                                                  |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `.` (root)                | The tool types, `createToolRegistrar`, `getToolOutput`, `removeNullFields`, schema cache, annotations                                                                                                                                           | `@modelcontextprotocol/server`, `zod`                                           |
+| `@doist/mcp-core/host`    | `validateBearerToken`, `TokenValidationError`, the host contract types (`TokenValidationResult`, `ValidateToken`, `McpServerOptions`), and the host's helpers (`isTransientValidationError`, `buildBearerChallenge`, `createTokenVerdictCache`) | none                                                                            |
+| `@doist/mcp-core/testing` | `describeOutputSchemaNullability`, `describeAdvertisedToolSchemas` and the helpers they use                                                                                                                                                     | the above; also imports `@modelcontextprotocol/client` and `vitest`, undeclared |
 
 ## `src/` tree
 
@@ -66,7 +66,10 @@ src/
 ├─ host/                  # ./host subpath: what a server offers the host that serves it
 │  ├─ index.ts            # ./host barrel
 │  ├─ server-contract.ts  # TokenValidationResult, ValidateToken, McpServerOptions (types only)
-│  └─ validate-bearer-token.ts # validateBearerToken, TokenValidationError
+│  ├─ validate-bearer-token.ts # validateBearerToken, TokenValidationError
+│  ├─ transient.ts        # isTransientValidationError
+│  ├─ challenge.ts        # buildBearerChallenge
+│  └─ verdict-cache.ts    # createTokenVerdictCache
 └─ testing/               # ./testing subpath: suites the servers run over their own tools
    ├─ index.ts            # ./testing barrel
    ├─ nullable-output.ts  # findNullablePaths, describeOutputSchemaNullability

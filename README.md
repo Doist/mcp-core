@@ -21,17 +21,17 @@ The MCP SDK and Zod are peer dependencies, so the server and the core share one 
 
 ## What's in it
 
-| Module              | Key exports                                                                                                                               |
-| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `tool`              | `McpTool`, `AnyMcpTool`, `ToolResult`, `ExecuteResult`, `RequiredToolAnnotations`, `ToolSchemaSource` (types)                             |
-| `register-tool`     | `createToolRegistrar`, `ToolRegistrarOptions`, `RegisterTool`, `ToolFailure`                                                              |
-| `tool-output`       | `getToolOutput`, `getErrorOutput`, `ToolOutputOptions`                                                                                    |
-| `sanitize`          | `removeNullFields`, `RemoveNullFieldsOptions`                                                                                             |
-| `tool-schemas`      | `getToolSchemas`, `ToolSchemas`                                                                                                           |
-| `annotations`       | `getMcpAnnotations`, `formatToolTitle`                                                                                                    |
-| `app-meta`          | `normalizeToolMeta`                                                                                                                       |
-| `host` (subpath)    | `validateBearerToken`, `ValidateBearerTokenOptions`, `TokenValidationError`, `TokenValidationResult`, `ValidateToken`, `McpServerOptions` |
-| `testing` (subpath) | `describeOutputSchemaNullability`, `describeAdvertisedToolSchemas`, `findNullablePaths`, `listAdvertisedTools`                            |
+| Module              | Key exports                                                                                                                                                                                                                |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tool`              | `McpTool`, `AnyMcpTool`, `ToolResult`, `ExecuteResult`, `RequiredToolAnnotations`, `ToolSchemaSource` (types)                                                                                                              |
+| `register-tool`     | `createToolRegistrar`, `ToolRegistrarOptions`, `RegisterTool`, `ToolFailure`                                                                                                                                               |
+| `tool-output`       | `getToolOutput`, `getErrorOutput`, `ToolOutputOptions`                                                                                                                                                                     |
+| `sanitize`          | `removeNullFields`, `RemoveNullFieldsOptions`                                                                                                                                                                              |
+| `tool-schemas`      | `getToolSchemas`, `ToolSchemas`                                                                                                                                                                                            |
+| `annotations`       | `getMcpAnnotations`, `formatToolTitle`                                                                                                                                                                                     |
+| `app-meta`          | `normalizeToolMeta`                                                                                                                                                                                                        |
+| `host` (subpath)    | `validateBearerToken`, `ValidateBearerTokenOptions`, `TokenValidationError`, `TokenValidationResult`, `ValidateToken`, `McpServerOptions`, `isTransientValidationError`, `buildBearerChallenge`, `createTokenVerdictCache` |
+| `testing` (subpath) | `describeOutputSchemaNullability`, `describeAdvertisedToolSchemas`, `findNullablePaths`, `listAdvertisedTools`                                                                                                             |
 
 ## Usage
 
@@ -137,6 +137,47 @@ export const validateNotesToken: ValidateToken = (token, baseUrl = 'https://note
 | a network failure                     | rejects with the error unchanged                                                             |
 
 The body is drained unread, so a change to the response's shape can't misclassify a token and the connection goes back to the pool. Redirects aren't followed: a sign-in page that answers 200 would otherwise pass for an accepted token. Pass `classifyForbidden` when a 403 can also mean a refusal that consent can't lift, `headers` to tag the request, and `fetch` when the server's API client has its own transport (a proxy from `HTTPS_PROXY`, say), so validation goes the same way as every other call.
+
+On the host's side, three helpers turn a validator's answer into a response, whatever the HTTP framework:
+
+```ts
+import {
+    buildBearerChallenge,
+    createTokenVerdictCache,
+    isTransientValidationError,
+} from '@doist/mcp-core/host'
+
+const verdicts = createTokenVerdictCache({ ttlMs: 120_000, maxEntries: 10_000 })
+
+async function checkToken(token: string, baseUrl: string): Promise<Response | 'proceed'> {
+    let result = verdicts.get(token, baseUrl)
+    if (!result) {
+        try {
+            result = await validateNotesToken(token, baseUrl)
+        } catch (error) {
+            if (isTransientValidationError(error)) return 'proceed' // or a 503; never cached
+            throw error
+        }
+        verdicts.set(token, baseUrl, result)
+    }
+    if (result === 'valid') return 'proceed'
+    const forbidden = result === 'forbidden'
+    return new Response(null, {
+        status: forbidden ? 403 : 401,
+        headers: {
+            'WWW-Authenticate': buildBearerChallenge({
+                error: forbidden ? 'insufficient_scope' : undefined,
+                resourceMetadataUrl:
+                    'https://notes.example.com/.well-known/oauth-protected-resource/mcp',
+            }),
+        },
+    })
+}
+```
+
+- `isTransientValidationError`: a timeout, a dropped or refused connection, or a 5xx, the rejections worth retrying. A redirect or a 404 is not.
+- `buildBearerChallenge`: `Bearer`, with `error="insufficient_scope"` and `resource_metadata="…"` when given.
+- `createTokenVerdictCache`: verdicts keyed by token and base URL, kept for `ttlMs`, the oldest dropped when full.
 
 ### Contract tests
 
