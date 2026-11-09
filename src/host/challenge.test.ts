@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { buildBearerChallenge } from './challenge.js'
 
-const METADATA = 'https://ai.todoist.net/.well-known/oauth-protected-resource/mcp'
+const METADATA = 'https://mcp.example.com/.well-known/oauth-protected-resource/mcp'
 
 describe('buildBearerChallenge', () => {
     it.each([

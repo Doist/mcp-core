@@ -38,6 +38,7 @@ export function createTokenVerdictCache({
             return undefined
         },
         set(token, baseUrl, result) {
+            if (maxEntries <= 0) return
             const key = keyOf(token, baseUrl)
             // Re-inserting moves the key to the end, so eviction order stays oldest-first.
             entries.delete(key)

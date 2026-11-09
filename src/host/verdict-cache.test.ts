@@ -63,6 +63,14 @@ describe('createTokenVerdictCache', () => {
         expect(cache.get('second')).toBe('invalid')
     })
 
+    it('keeps nothing when maxEntries is 0', () => {
+        const cache = createTokenVerdictCache({ ttlMs: 1_000, maxEntries: 0 })
+
+        cache.set('tok', undefined, 'valid')
+
+        expect(cache.get('tok')).toBeUndefined()
+    })
+
     it('forgets everything on clear', () => {
         const cache = createTokenVerdictCache({ ttlMs: 1_000, maxEntries: 10 })
         cache.set('tok', undefined, 'valid')

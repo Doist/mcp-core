@@ -1,4 +1,4 @@
-const TRANSIENT_CAUSE_CODES = new Set([
+const TRANSIENT_CODES = new Set([
     'ECONNREFUSED',
     'ECONNRESET',
     'ETIMEDOUT',
@@ -9,7 +9,9 @@ const TRANSIENT_CAUSE_CODES = new Set([
     'UND_ERR_SOCKET',
 ])
 
-const TRANSIENT_MESSAGES = ['fetch failed', 'ECONNREFUSED', 'ETIMEDOUT', 'ENOTFOUND']
+function codeOf(value: unknown): unknown {
+    return (value as { code?: unknown } | undefined)?.code
+}
 
 function statusOf(error: object): number | undefined {
     const record = error as Record<string, unknown>
@@ -20,8 +22,8 @@ function statusOf(error: object): number | undefined {
 
 /**
  * Whether a `ValidateToken` rejection is worth retrying rather than a fault to report: a timeout,
- * a dropped or refused connection, or a 5xx (`TokenValidationError` carries it as
- * `httpStatusCode`). A host can then let the request through or answer 503, and never caches
+ * a dropped or refused connection (by its `code`, on the error or on its `cause`), or a 5xx
+ * (`TokenValidationError` carries it as `httpStatusCode`). A host can then let the request through or answer 503, and never caches
  * the failure as a verdict. Anything else, such as a redirect or a 404 from a misconfigured base
  * URL, is not transient.
  */
@@ -29,16 +31,19 @@ export function isTransientValidationError(error: unknown): boolean {
     if (error instanceof Error) {
         if (error.name === 'TimeoutError' || error.name === 'AbortError') return true
 
-        // undici wraps transport failures in "fetch failed" and puts the code on `cause`.
-        const causeCode = (error.cause as { code?: unknown } | undefined)?.code
-        if (typeof causeCode === 'string' && TRANSIENT_CAUSE_CODES.has(causeCode)) return true
+        // Node's net and dns errors carry the code themselves; undici wraps them in "fetch failed"
+        // and puts the code on `cause`.
+        for (const code of [codeOf(error), codeOf(error.cause)]) {
+            if (typeof code === 'string' && TRANSIENT_CODES.has(code)) return true
+        }
 
-        if (TRANSIENT_MESSAGES.some((message) => error.message.includes(message))) return true
+        // undici's own wording for a request that never got a response, when it gives no code.
+        if (error.message.includes('fetch failed')) return true
     }
 
     if (error !== null && typeof error === 'object') {
         const status = statusOf(error)
-        if (status !== undefined && status >= 500) return true
+        if (status !== undefined && status >= 500 && status <= 599) return true
     }
 
     return false
