@@ -1,9 +1,8 @@
 import { readdirSync, readFileSync } from 'node:fs'
-import { dirname, join, relative, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { join, resolve, sep } from 'node:path'
 import { expect, it } from 'vitest'
 
-const srcDir = dirname(fileURLToPath(import.meta.url))
+const srcDir = import.meta.dirname
 const pkg = JSON.parse(readFileSync(resolve(srcDir, '../package.json'), 'utf8')) as {
     peerDependencies?: Record<string, string>
 }
@@ -11,7 +10,7 @@ const pkg = JSON.parse(readFileSync(resolve(srcDir, '../package.json'), 'utf8'))
 function rootEntrySources(): string[] {
     return readdirSync(srcDir, { recursive: true, encoding: 'utf8' })
         .filter((file) => file.endsWith('.ts') && !file.endsWith('.test.ts'))
-        .filter((file) => !relative(srcDir, join(srcDir, file)).startsWith('testing'))
+        .filter((file) => !file.startsWith(`testing${sep}`))
         .map((file) => readFileSync(join(srcDir, file), 'utf8'))
 }
 

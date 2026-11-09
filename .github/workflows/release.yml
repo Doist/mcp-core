@@ -56,16 +56,18 @@ jobs:
                   GH_TOKEN: ${{ steps.generate_token.outputs.token }}
 
             - name: Checkout repository
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
               with:
                   token: ${{ steps.generate_token.outputs.token }}
                   fetch-depth: 0
 
             - name: Setup Node.js
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v7
               with:
                   node-version: '24'
-                  cache: npm
+                  # This job can push tags and publish, so it restores nothing from the shared
+                  # cache, as setup-node advises for privileged workflows.
+                  package-manager-cache: false
                   scope: '@doist'
                   registry-url: 'https://registry.npmjs.org/'
 
