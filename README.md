@@ -136,7 +136,7 @@ export const validateNotesToken: ValidateToken = (token, baseUrl = 'https://note
 | nothing within `timeoutMs` (5s)       | rejects with the `TimeoutError`                                                              |
 | a network failure                     | rejects with the error unchanged                                                             |
 
-The body is drained unread, so a change to the response's shape can't misclassify a token and the connection goes back to the pool. Redirects aren't followed: a sign-in page that answers 200 would otherwise pass for an accepted token. Pass `classifyForbidden` when a 403 can also mean a refusal that consent can't lift, and `headers` to tag the request.
+The body is drained unread, so a change to the response's shape can't misclassify a token and the connection goes back to the pool. Redirects aren't followed: a sign-in page that answers 200 would otherwise pass for an accepted token. Pass `classifyForbidden` when a 403 can also mean a refusal that consent can't lift, `headers` to tag the request, and `fetch` when the server's API client has its own transport (a proxy from `HTTPS_PROXY`, say), so validation goes the same way as every other call.
 
 ### Contract tests
 
