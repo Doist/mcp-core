@@ -1,17 +1,14 @@
 import type { McpServer, Tool } from '@modelcontextprotocol/server'
 import { beforeAll, describe, expect, it } from 'vitest'
+import type { RequiredToolAnnotations } from '../tool.js'
 import { listAdvertisedTools } from './advertised-schemas.js'
 
-/** The annotations one tool should advertise. */
-export type ExpectedToolAnnotations = {
-    /** The full advertised title, prefix included: `'Todoist: Add Tasks'`. */
-    title: string
-    readOnlyHint: boolean
-    destructiveHint: boolean
-    idempotentHint: boolean
-    /** Defaults to false, as registration does: true only for a tool that reaches outside the account. */
-    openWorldHint?: boolean
-}
+/**
+ * The annotations one tool should advertise: its own hints, as the tool declares them, plus the
+ * full advertised `title`, prefix included (`'Todoist: Add Tasks'`). `openWorldHint` defaults to
+ * false, as registration does.
+ */
+export type ExpectedToolAnnotations = RequiredToolAnnotations & { title: string }
 
 export type ToolAnnotationsConfig = {
     /** Builds a fresh server with every tool registered. */

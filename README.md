@@ -173,7 +173,7 @@ const createServer = () => getMcpServer({ token: 'test-token' })
 describeTokenFootprint({
     createServer,
     countTokens: (text) => encode(text).length,
-    budget: Number(process.env.MCP_TOKEN_BUDGET ?? 13_250),
+    budget: 13_250,
 })
 describeToolAnnotations({
     createServer,

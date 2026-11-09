@@ -7,7 +7,15 @@ import { describeTokenFootprint, measureTokenFootprint } from './token-footprint
 
 const hints = { readOnlyHint: true, destructiveHint: false, idempotentHint: true }
 
+// The cheaper tool is registered first, so only the sort can put find-tasks ahead of it.
 const tools: AnyMcpTool[] = [
+    {
+        name: 'ping',
+        description: 'Checks the server answers.',
+        parameters: {},
+        annotations: hints,
+        execute: async () => ({ textContent: 'pong' }),
+    },
     {
         name: 'find-tasks',
         description: 'Finds tasks.',
@@ -15,13 +23,6 @@ const tools: AnyMcpTool[] = [
         outputSchema: { tasks: z.array(z.object({ id: z.string() })) },
         annotations: hints,
         execute: async () => ({}),
-    },
-    {
-        name: 'ping',
-        description: 'Checks the server answers.',
-        parameters: {},
-        annotations: hints,
-        execute: async () => ({ textContent: 'pong' }),
     },
 ]
 
@@ -49,10 +50,13 @@ function countCharacters(text: string): number {
 describe('measureTokenFootprint', () => {
     it('measures the tools/list payload as one array, the way a client receives it', async () => {
         const measured: string[] = []
-        await measureTokenFootprint(createServer(), (text) => {
+        const footprint = await measureTokenFootprint(createServer(), (text) => {
             measured.push(text)
             return 1
         })
+
+        // One call for the whole list: a sum over the tools would count 2.
+        expect(footprint.toolsList).toBe(1)
 
         const asArray = measured
             .filter((text) => text.startsWith('['))
@@ -60,8 +64,8 @@ describe('measureTokenFootprint', () => {
                 (text) => JSON.parse(text) as { name: string; annotations?: { title?: string } }[],
             )[0]
         expect(asArray?.map((tool) => [tool.name, tool.annotations?.title])).toEqual([
-            ['find-tasks', 'Fixture: Find Tasks'],
             ['ping', 'Fixture: Ping'],
+            ['find-tasks', 'Fixture: Find Tasks'],
         ])
     })
 

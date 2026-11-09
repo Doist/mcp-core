@@ -56,10 +56,6 @@ export async function measureTokenFootprint(
     }
 }
 
-function pad(value: string | number, width: number): string {
-    return String(value).padStart(width)
-}
-
 function formatFootprint(footprint: TokenFootprint, budget: number): string {
     return [
         '',
@@ -73,7 +69,7 @@ function formatFootprint(footprint: TokenFootprint, budget: number): string {
         'Per tool (total / description / inputSchema / outputSchema):',
         ...footprint.tools.map(
             (tool) =>
-                `  ${pad(tool.total, 5)}  ${pad(tool.description, 4)}  ${pad(tool.inputSchema, 5)}  ${pad(tool.outputSchema, 5)}   ${tool.name}`,
+                `  ${String(tool.total).padStart(5)}  ${String(tool.description).padStart(4)}  ${String(tool.inputSchema).padStart(5)}  ${String(tool.outputSchema).padStart(5)}   ${tool.name}`,
         ),
     ].join('\n')
 }
@@ -84,8 +80,8 @@ export type TokenFootprintConfig = {
     /** The tokenizer, such as `(text) => encode(text).length` from `gpt-tokenizer`. */
     countTokens: CountTokens
     /**
-     * The most the fixed cost may be. Treat it as a ratchet rather than headroom: a rise needs
-     * justifying in the change that causes it.
+     * What the fixed cost must stay under. Treat it as a ratchet rather than headroom: a rise
+     * needs justifying in the change that causes it.
      */
     budget: number
 }
