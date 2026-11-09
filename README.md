@@ -31,7 +31,7 @@ The MCP SDK and Zod are peer dependencies, so the server and the core share one 
 | `annotations`       | `getMcpAnnotations`, `formatToolTitle`                                                                                                                                                                                     |
 | `app-meta`          | `normalizeToolMeta`                                                                                                                                                                                                        |
 | `host` (subpath)    | `validateBearerToken`, `ValidateBearerTokenOptions`, `TokenValidationError`, `TokenValidationResult`, `ValidateToken`, `McpServerOptions`, `isTransientValidationError`, `buildBearerChallenge`, `createTokenVerdictCache` |
-| `testing` (subpath) | `describeOutputSchemaNullability`, `describeAdvertisedToolSchemas`, `findNullablePaths`, `listAdvertisedTools`                                                                                                             |
+| `testing` (subpath) | `describeOutputSchemaNullability`, `describeAdvertisedToolSchemas`, `describeToolAnnotations`, `describeTokenFootprint`, `measureTokenFootprint`, `findNullablePaths`, `listAdvertisedTools`                               |
 
 ## Usage
 
@@ -202,6 +202,35 @@ describeAdvertisedToolSchemas({
 - `describeAdvertisedToolSchemas`: the server advertises exactly these tools, each with JSON Schema 2020-12 schemas matching a direct Zod conversion.
 
 Both take any `{ name, parameters, outputSchema? }`, so a server can run them before its tools move to `McpTool`.
+
+Two more read only what a client receives, so they restate nothing about registration:
+
+```ts
+import { describeTokenFootprint, describeToolAnnotations } from '@doist/mcp-core/testing'
+import { encode } from 'gpt-tokenizer'
+
+const createServer = () => getMcpServer({ token: 'test-token' })
+
+describeTokenFootprint({
+    createServer,
+    countTokens: (text) => encode(text).length,
+    budget: 13_250,
+})
+describeToolAnnotations({
+    createServer,
+    expected: {
+        'find-notes': {
+            title: 'Notes: Find Notes',
+            readOnlyHint: true,
+            destructiveHint: false,
+            idempotentHint: true,
+        },
+    },
+})
+```
+
+- `describeTokenFootprint`: the fixed cost every session pays (the `tools/list` payload as one array, plus `instructions`) stays under `budget`, and either half going missing fails too. It prints the cost per tool. Treat the budget as a ratchet: a rise needs justifying in the change that causes it. `measureTokenFootprint` returns the same numbers. The tokenizer is yours to pass, so mcp-core depends on none.
+- `describeToolAnnotations`: every advertised tool has exactly the expected annotations, title and defaults included (`openWorldHint` defaults to false), and every expected tool is advertised. Clients decide from these whether a call needs the user's confirmation.
 
 ## Rules for tools
 
