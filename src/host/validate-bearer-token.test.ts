@@ -197,4 +197,29 @@ describe('validateBearerToken', () => {
         expect(error).not.toBeInstanceOf(TokenValidationError)
         expect(error).toMatchObject({ cause: { code: 'ECONNREFUSED' } })
     })
+
+    it('sends the request through the given fetch, with the request it would send itself', async () => {
+        reply = { status: 403 }
+        const calls: { url: string; init: RequestInit }[] = []
+        const throughProxy: typeof fetch = (input, init = {}) => {
+            calls.push({ url: String(input), init })
+            const headers = new Headers(init.headers)
+            headers.set('via', 'test-proxy')
+            return fetch(input, { ...init, headers })
+        }
+
+        const result = await validateBearerToken({
+            url: `${baseUrl}/api/v1/user`,
+            token: 'tok-123',
+            fetch: throughProxy,
+        })
+
+        expect(result).toBe('forbidden')
+        expect(calls).toHaveLength(1)
+        expect(calls[0]?.url).toBe(`${baseUrl}/api/v1/user`)
+        expect(calls[0]?.init.redirect).toBe('manual')
+        expect(calls[0]?.init.signal).toBeInstanceOf(AbortSignal)
+        expect(new Headers(calls[0]?.init.headers).get('authorization')).toBe('Bearer tok-123')
+        expect(received[0]?.headers.via).toBe('test-proxy')
+    })
 })

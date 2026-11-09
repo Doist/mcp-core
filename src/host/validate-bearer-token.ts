@@ -30,6 +30,12 @@ export type ValidateBearerTokenOptions = {
      * consent cannot lift reads the response here, such as its `WWW-Authenticate` challenge.
      */
     classifyForbidden?: (response: Response) => TokenValidationResult
+    /**
+     * Sends the request. Defaults to the global `fetch`. A server whose API client has its own
+     * transport passes it here, so validation takes the same route as every other call: through
+     * a proxy from `HTTPS_PROXY`, for example.
+     */
+    fetch?: (url: string | URL, init: RequestInit) => Promise<Response>
 }
 
 /**
@@ -49,11 +55,12 @@ export async function validateBearerToken({
     headers,
     timeoutMs = DEFAULT_TIMEOUT_MS,
     classifyForbidden = () => 'forbidden',
+    fetch: send = fetch,
 }: ValidateBearerTokenOptions): Promise<TokenValidationResult> {
     const requestHeaders = new Headers(headers)
     requestHeaders.set('Authorization', `Bearer ${token}`)
 
-    const response = await fetch(url, {
+    const response = await send(url, {
         headers: requestHeaders,
         redirect: 'manual',
         signal: AbortSignal.timeout(timeoutMs),
