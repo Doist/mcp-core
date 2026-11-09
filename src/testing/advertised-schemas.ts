@@ -6,19 +6,30 @@ import type { ToolSchemaSource } from '../tool.js'
 
 const JSON_SCHEMA_2020_12 = 'https://json-schema.org/draft/2020-12/schema'
 
-/** The tools a server advertises on `tools/list`, read through an in-memory client. */
-export async function listAdvertisedTools(server: McpServer): Promise<Tool[]> {
+/**
+ * What a client sees of a server before it calls anything: the `tools/list` payload and the
+ * `instructions` block, read through an in-memory client. Closes the server afterwards.
+ */
+export async function readAdvertisedSurface(
+    server: McpServer,
+): Promise<{ tools: Tool[]; instructions: string | undefined }> {
     const client = new Client({ name: 'mcp-core-testing', version: '1.0.0' })
     const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair()
 
     await Promise.all([server.connect(serverTransport), client.connect(clientTransport)])
 
     try {
-        return (await client.listTools()).tools
+        const { tools } = await client.listTools()
+        return { tools, instructions: client.getInstructions() }
     } finally {
         await client.close()
         await server.close()
     }
+}
+
+/** The tools a server advertises on `tools/list`, read through an in-memory client. */
+export async function listAdvertisedTools(server: McpServer): Promise<Tool[]> {
+    return (await readAdvertisedSurface(server)).tools
 }
 
 export type AdvertisedSchemasConfig = {
