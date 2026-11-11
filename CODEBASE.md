@@ -6,8 +6,8 @@
 
 ## What this project is
 
-`@doist/mcp-core` is a **shared TypeScript library** for the Doist MCP servers
-(`@doist/todoist-mcp`, `@doist/comms-mcp`, `@doist/automations-mcp`). It is **not a server**:
+`@todoist/mcp-core` is a **shared TypeScript library** for the Doist MCP servers
+(`@todoist/mcp`, `@todoist/comms-mcp`, `@todoist/automations-mcp`). It is **not a server**:
 it ships the tool contract, a tool registrar with hooks for what differs per product, the
 wire shaping of tool results, the contract a server offers its host (token validation and the
 factory options), and contract test suites each server runs over its own tools.
@@ -43,11 +43,11 @@ oxlint + oxfmt · semantic-release.
 
 ## Public API surface (`package.json#exports`)
 
-| Subpath                   | Provides                                                                                                                                                                                                                                        | Peers it needs                                                                  |
-| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| `.` (root)                | The tool types, `createToolRegistrar`, `getToolOutput`, `removeNullFields`, schema cache, annotations                                                                                                                                           | `@modelcontextprotocol/server`, `zod`                                           |
-| `@doist/mcp-core/host`    | `validateBearerToken`, `TokenValidationError`, the host contract types (`TokenValidationResult`, `ValidateToken`, `McpServerOptions`), and the host's helpers (`isTransientValidationError`, `buildBearerChallenge`, `createTokenVerdictCache`) | none                                                                            |
-| `@doist/mcp-core/testing` | `describeOutputSchemaNullability`, `describeAdvertisedToolSchemas`, `describeToolAnnotations`, `describeTokenFootprint` and the helpers they use                                                                                                | the above; also imports `@modelcontextprotocol/client` and `vitest`, undeclared |
+| Subpath                     | Provides                                                                                                                                                                                                                                        | Peers it needs                                                                  |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `.` (root)                  | The tool types, `createToolRegistrar`, `getToolOutput`, `removeNullFields`, schema cache, annotations                                                                                                                                           | `@modelcontextprotocol/server`, `zod`                                           |
+| `@todoist/mcp-core/host`    | `validateBearerToken`, `TokenValidationError`, the host contract types (`TokenValidationResult`, `ValidateToken`, `McpServerOptions`), and the host's helpers (`isTransientValidationError`, `buildBearerChallenge`, `createTokenVerdictCache`) | none                                                                            |
+| `@todoist/mcp-core/testing` | `describeOutputSchemaNullability`, `describeAdvertisedToolSchemas`, `describeToolAnnotations`, `describeTokenFootprint` and the helpers they use                                                                                                | the above; also imports `@modelcontextprotocol/client` and `vitest`, undeclared |
 
 ## `src/` tree
 

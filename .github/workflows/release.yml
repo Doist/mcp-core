@@ -68,7 +68,7 @@ jobs:
                   # This job can push tags and publish, so it restores nothing from the shared
                   # cache, as setup-node advises for privileged workflows.
                   package-manager-cache: false
-                  scope: '@doist'
+                  scope: '@todoist'
                   registry-url: 'https://registry.npmjs.org/'
 
             - name: Install dependencies

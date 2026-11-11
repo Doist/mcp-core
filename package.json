@@ -1,5 +1,5 @@
 {
-    "name": "@doist/mcp-core",
+    "name": "@todoist/mcp-core",
     "version": "0.0.0-development",
     "description": "Shared core for the Doist MCP servers",
     "type": "module",
