@@ -112,7 +112,7 @@ When you say a change is ready, the agent runs `review-changes`:
 
 Findings are fixed, dismissed with evidence (a line or a test run, never an argument), or left open for you. Reviewers that need to run code get their own worktree from `npm run review:worktree -- <dir>`; the shared one stays read-only.
 
-The checks cover tests, architecture, security, privacy, the public API and evidence. The public API check holds what the MCP servers rely on: export names, signatures, the wire shape of tool results, peer dependencies and the Node engine. Two kinds Doist uses elsewhere don't apply here: there are no translations and no database migrations.
+The checks cover tests, architecture, security, privacy, the public API and evidence. The public API check holds what the MCP servers rely on: export names, signatures, the wire shape of tool results, peer dependencies and the Node engine. Two kinds Todoist uses elsewhere don't apply here: there are no translations and no database migrations.
 
 A review costs several agent runs, so it runs when you ask, not on every change. A Doistbot run with a failed provider (`providerFailures`) is partial; the agent should say so.
 

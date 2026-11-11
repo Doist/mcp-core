@@ -41,11 +41,11 @@
     "license": "MIT",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/Doist/mcp-core.git"
+        "url": "git+https://github.com/todoist/mcp-core.git"
     },
-    "homepage": "https://github.com/Doist/mcp-core#readme",
+    "homepage": "https://github.com/todoist/mcp-core#readme",
     "bugs": {
-        "url": "https://github.com/Doist/mcp-core/issues"
+        "url": "https://github.com/todoist/mcp-core/issues"
     },
     "publishConfig": {
         "access": "public",
