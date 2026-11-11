@@ -1,6 +1,6 @@
 # mcp-core
 
-Shared core for the Doist MCP servers (`@doist/todoist-mcp`, `@doist/comms-mcp`, `@doist/automations-mcp`): the tool contract, tool registration, how a result is shaped for the wire, and contract test suites. TypeScript, ESM-only, Node ≥ 24.
+Shared core for the Doist MCP servers (`@todoist/mcp`, `@todoist/comms-mcp`, `@todoist/automations-mcp`): the tool contract, tool registration, how a result is shaped for the wire, and contract test suites. TypeScript, ESM-only, Node ≥ 24.
 
 > For where things are, read [`CODEBASE.md`](./CODEBASE.md). This file covers the _rules_.
 

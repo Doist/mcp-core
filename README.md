@@ -1,4 +1,4 @@
-# @doist/mcp-core
+# @todoist/mcp-core
 
 Shared core for Todoist's MCP servers ([todoist-mcp](https://github.com/todoist/todoist-mcp), [comms-mcp](https://github.com/todoist/comms-mcp) and the Automations MCP server): the tool contract, tool registration, how a tool result is shaped for the wire, the contract a server offers the host that serves it, and the contract test suites every server runs over its own tools.
 
@@ -7,8 +7,10 @@ TypeScript, ESM-only, Node ≥ 24, npm ≥ 11.
 ## Install
 
 ```bash
-npm install @doist/mcp-core
+npm install @todoist/mcp-core
 ```
+
+Previously published as `@doist/mcp-core`.
 
 The MCP SDK and Zod are peer dependencies, so the server and the core share one copy of each. That matters: a host that serves several MCP servers unwraps them with `instanceof McpServer`, which fails against a second copy of the SDK.
 
@@ -40,7 +42,7 @@ The MCP SDK and Zod are peer dependencies, so the server and the core share one 
 `McpTool<Params, Output, Context>` is generic over what each call receives, so each server picks its own context: an API client, or an object carrying one with an abort signal and a progress reporter. A server usually aliases it with its context filled in.
 
 ```ts
-import type { McpTool } from '@doist/mcp-core'
+import type { McpTool } from '@todoist/mcp-core'
 import { z } from 'zod'
 import type { NotesApi } from './notes-api.js'
 
@@ -71,8 +73,8 @@ export const findNotes = {
 `createToolRegistrar` returns a function that registers tools on a server. Everything that differs between products comes in through its options:
 
 ```ts
-import { createToolRegistrar } from '@doist/mcp-core'
 import { McpServer } from '@modelcontextprotocol/server'
+import { createToolRegistrar } from '@todoist/mcp-core'
 
 export function getMcpServer({ token }: { token: string }): McpServer {
     const server = new McpServer({ name: 'notes-mcp-server', version: '1.0.0' })
@@ -113,7 +115,7 @@ For each tool this:
 
 ### Serving a server from a host
 
-`@doist/mcp-core/host` is the contract between a server package and a host that serves several of them, such as todoist-ai-integrations. Every server exports the same two shapes:
+`@todoist/mcp-core/host` is the contract between a server package and a host that serves several of them, such as todoist-ai-integrations. Every server exports the same two shapes:
 
 - `getMcpServer(options)`, taking `McpServerOptions` (`{ token, baseUrl? }`), or `McpServerOptions & { ... }` when it needs more;
 - a `ValidateToken`: `(token, baseUrl?) => Promise<'valid' | 'invalid' | 'forbidden'>`.
@@ -121,7 +123,7 @@ For each tool this:
 A validator resolves only with a verdict on the token and rejects for anything else, so the host can retry a failure without caching it as a verdict. `validateBearerToken` builds one from a status-only `GET`:
 
 ```ts
-import { validateBearerToken, type ValidateToken } from '@doist/mcp-core/host'
+import { validateBearerToken, type ValidateToken } from '@todoist/mcp-core/host'
 
 export const validateNotesToken: ValidateToken = (token, baseUrl = 'https://notes.example.com') =>
     validateBearerToken({ url: `${baseUrl}/api/v1/me`, token })
@@ -145,7 +147,7 @@ import {
     buildBearerChallenge,
     createTokenVerdictCache,
     isTransientValidationError,
-} from '@doist/mcp-core/host'
+} from '@todoist/mcp-core/host'
 
 const verdicts = createTokenVerdictCache({ ttlMs: 120_000, maxEntries: 10_000 })
 
@@ -181,13 +183,13 @@ async function checkToken(token: string, baseUrl: string): Promise<Response | 'p
 
 ### Contract tests
 
-`@doist/mcp-core/testing` holds suites a server runs over its own tool registry:
+`@todoist/mcp-core/testing` holds suites a server runs over its own tool registry:
 
 ```ts
 import {
     describeAdvertisedToolSchemas,
     describeOutputSchemaNullability,
-} from '@doist/mcp-core/testing'
+} from '@todoist/mcp-core/testing'
 import { getMcpServer } from './mcp-server.js'
 import { registeredTools } from './tool-registry.js'
 
@@ -206,7 +208,7 @@ Both take any `{ name, parameters, outputSchema? }`, so a server can run them be
 Two more read only what a client receives, so they restate nothing about registration:
 
 ```ts
-import { describeTokenFootprint, describeToolAnnotations } from '@doist/mcp-core/testing'
+import { describeTokenFootprint, describeToolAnnotations } from '@todoist/mcp-core/testing'
 import { encode } from 'gpt-tokenizer'
 
 const createServer = () => getMcpServer({ token: 'test-token' })
