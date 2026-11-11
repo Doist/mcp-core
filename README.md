@@ -1,6 +1,6 @@
 # @doist/mcp-core
 
-Shared core for Doist's MCP servers ([todoist-mcp](https://github.com/Doist/todoist-mcp), [comms-mcp](https://github.com/Doist/comms-mcp) and the Automations MCP server): the tool contract, tool registration, how a tool result is shaped for the wire, the contract a server offers the host that serves it, and the contract test suites every server runs over its own tools.
+Shared core for Todoist's MCP servers ([todoist-mcp](https://github.com/todoist/todoist-mcp), [comms-mcp](https://github.com/todoist/comms-mcp) and the Automations MCP server): the tool contract, tool registration, how a tool result is shaped for the wire, the contract a server offers the host that serves it, and the contract test suites every server runs over its own tools.
 
 TypeScript, ESM-only, Node ≥ 24, npm ≥ 11.
 
