@@ -73,8 +73,8 @@ export const findNotes = {
 `createToolRegistrar` returns a function that registers tools on a server. Everything that differs between products comes in through its options:
 
 ```ts
-import { createToolRegistrar } from '@todoist/mcp-core'
 import { McpServer } from '@modelcontextprotocol/server'
+import { createToolRegistrar } from '@todoist/mcp-core'
 
 export function getMcpServer({ token }: { token: string }): McpServer {
     const server = new McpServer({ name: 'notes-mcp-server', version: '1.0.0' })
