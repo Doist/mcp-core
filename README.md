@@ -171,6 +171,7 @@ async function checkToken(token: string, baseUrl: string): Promise<Response | 'p
                 error: forbidden ? 'insufficient_scope' : undefined,
                 resourceMetadataUrl:
                     'https://notes.example.com/.well-known/oauth-protected-resource/mcp',
+                scopes: ['notes:read', 'notes:write'],
             }),
         },
     })
@@ -178,7 +179,7 @@ async function checkToken(token: string, baseUrl: string): Promise<Response | 'p
 ```
 
 - `isTransientValidationError`: a timeout, a dropped or refused connection, or a 5xx, the rejections worth retrying. A redirect or a 404 is not.
-- `buildBearerChallenge`: `Bearer`, with `error="insufficient_scope"` and `resource_metadata="…"` when given.
+- `buildBearerChallenge`: `Bearer`, with `error="insufficient_scope"`, `resource_metadata="…"` and `scope="…"` (from `scopes`, space-separated) when given. MCP clients request the challenge's `scope` ahead of the metadata's `scopes_supported`, so pass the resource's scopes to help a client that never reads the metadata.
 - `createTokenVerdictCache`: verdicts keyed by token and base URL, kept for `ttlMs`, the oldest dropped when full.
 
 ### Contract tests
